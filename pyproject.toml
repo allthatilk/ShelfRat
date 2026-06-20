@@ -1,0 +1,69 @@
+[project]
+name = "shelf-rat"
+version = "0.1.0"
+description = "A Calibre plugin that uploads books from your Calibre library directly to a Grimmory server, with series and metadata support."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [{ name = "allthatilk" }]
+# This project is a Calibre plugin. Its runtime dependencies (the `calibre`
+# and `qt` packages) are provided by Calibre's bundled Python interpreter and
+# are NOT available on PyPI, so no runtime dependencies are declared here.
+dependencies = []
+
+# Dev tooling, managed by uv (PEP 735 dependency groups). Installed by default
+# on `uv sync`.
+[dependency-groups]
+dev = [
+  "pytest>=8.0",
+  "pytest-mock>=3.14",
+  "black>=24",
+  "ruff>=0.6",
+  "mypy>=1.0",
+]
+
+[tool.uv]
+# The plugin is loaded by Calibre, not installed via pip, so treat this as a
+# "virtual" project: uv builds/installs the dev environment but not the project
+# itself. This also means no [build-system] is required.
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Put the repo root on sys.path so tests can `import grimmory_client` etc.
+pythonpath = ["."]
+addopts = "-ra"
+
+[tool.black]
+line-length = 79
+target-version = ["py39"]
+
+[tool.ruff]
+line-length = 79
+target-version = "py39"
+
+[tool.ruff.lint]
+# E/W: pycodestyle, F: pyflakes (unused/undefined), Q: double-quote style,
+# UP031/UP032: prefer f-strings over %-formatting and str.format().
+select = ["E", "W", "F", "Q", "UP031", "UP032"]
+ignore = [
+  "E203",  # whitespace before ':' — defer to Black
+  "E501",  # line length — Black owns it (and keeps unsplittable lines as-is)
+]
+
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "double"
+multiline-quotes = "double"
+docstring-quotes = "double"
+
+[tool.mypy]
+python_version = "3.9"
+# Only the pure, well-typed modules. Calibre/Qt-bound code is left untyped.
+files = ["grimmory_client.py", "main.py"]
+# Calibre and Qt aren't installed in the dev env and ship no type stubs.
+ignore_missing_imports = true
+# The repo root has an __init__.py (the plugin), which otherwise makes mypy
+# derive an invalid package name from the (hyphenated) directory.
+explicit_package_bases = true
+mypy_path = "."
